@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* #F8FAFC */
+    --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -13,9 +13,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Mtaa Shield Primary (Deep Forest Green: #0A5239 -> HSL ~ 159 78% 18%) */
-    --primary: 159 78% 18%;
-    --primary-foreground: 210 40% 98%;
+    /* Mtaa Shield Primary: Emerald Green */
+    --primary: 160 84% 22%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -23,48 +23,40 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Mtaa Shield Accent (Warm Sun Orange: #F69927 -> HSL ~ 33 93% 56%) */
+    /* Accent: Warm Amber */
     --accent: 33 93% 56%;
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 159 78% 18%;
+    --ring: 160 84% 22%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
-    --primary: 159 78% 18%;
-    --primary-foreground: 210 40% 98%;
-
+    --primary: 160 84% 35%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 33 93% 56%;
-    --accent-foreground: 210 40% 98%;
-
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 159 78% 18%;
+    --ring: 160 84% 35%;
   }
 }
 
@@ -73,6 +65,20 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
