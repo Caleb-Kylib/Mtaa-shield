@@ -18,16 +18,19 @@ const colorMap: Record<string, string> = {
   emerald: "bg-emerald-600", blue: "bg-blue-600",
   orange: "bg-orange-600", yellow: "bg-yellow-600",
   purple: "bg-purple-600", rose: "bg-rose-600",
+  teal: "bg-teal-600",
 };
 const ringMap: Record<string, string> = {
   emerald: "ring-emerald-500", blue: "ring-blue-500",
   orange: "ring-orange-500", yellow: "ring-yellow-500",
   purple: "ring-purple-500", rose: "ring-rose-500",
+  teal: "ring-teal-500",
 };
 const textMap: Record<string, string> = {
   emerald: "text-emerald-600", blue: "text-blue-600",
   orange: "text-orange-600", yellow: "text-yellow-600",
   purple: "text-purple-600", rose: "text-rose-600",
+  teal: "text-teal-600",
 };
 
 export default function PackagesContent() {
@@ -105,7 +108,7 @@ export default function PackagesContent() {
         </div>
 
         {/* Package Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+        <div className={`grid grid-cols-1 gap-8 max-w-5xl mx-auto mb-16 ${packages.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2 max-w-4xl"}`}>
           {packages.map((pkg, i) => {
             const price = calculatePrice(pkg, frequency);
             const color = pkg.color;

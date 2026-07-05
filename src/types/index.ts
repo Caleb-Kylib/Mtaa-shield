@@ -42,7 +42,7 @@ export interface InsurancePackage {
   id: string;
   name: string;
   occupation: OccupationType;
-  tier: 'basic' | 'plus';
+  tier: 'basic' | 'plus' | 'animal';
   tagline: string;
   weeklyPrice: number;
   monthlyPrice: number;

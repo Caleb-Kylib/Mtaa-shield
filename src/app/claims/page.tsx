@@ -13,6 +13,15 @@ const claimTypes: Record<OccupationType, { label: string; icon: string; desc: st
     { label: "Crop Damage", icon: "🌱", desc: "Drought, excess rain, or disease affecting your crops" },
     { label: "Livestock Loss", icon: "🐄", desc: "Injury, illness, or theft of livestock" },
     { label: "Equipment Damage", icon: "🚜", desc: "Damage to farming tools or machinery" },
+    { label: "Animal Disease / Illness", icon: "🦠", desc: "Notifiable diseases such as FMD, CBPP, CCPP, anthrax, or tick-borne illness causing animal death" },
+    { label: "Predator or Wildlife Attack", icon: "🦁", desc: "Animal killed or maimed by lions, hyenas, leopards, or other wildlife" },
+    { label: "Accidental Injury or Death", icon: "🩺", desc: "Animal fatally injured in a fall, fence entanglement, vehicle collision, or farm accident" },
+    { label: "Animal Theft / Rustling", icon: "🔓", desc: "One or more animals stolen from your farm or while in transit" },
+    { label: "Drought or Starvation", icon: "☀️", desc: "Animal deaths directly caused by prolonged drought or pasture failure" },
+    { label: "Flood or Storm Damage", icon: "🌊", desc: "Animals lost or killed due to flooding, flash floods, or severe storms" },
+    { label: "Transit Accident", icon: "🚚", desc: "Animal injured or died during transportation to market, auction, or a veterinary facility" },
+    { label: "Difficult Birth (Dystocia)", icon: "🐣", desc: "Loss of a high-value breeding animal due to complications during labour" },
+    { label: "Poisoning", icon: "☠️", desc: "Animal died after consuming toxic plants, contaminated water, or malicious poisoning" },
   ],
   "boda-rider": [
     { label: "Accident Claim", icon: "🏍️", desc: "Injuries sustained in a road accident" },
@@ -136,7 +145,7 @@ export default function ClaimsPage() {
           <div className="p-6 border-b border-gray-100">
             <h3 className="font-bold text-gray-900 mb-1">2. What are you claiming for?</h3>
             <p className="text-gray-500 text-sm mb-4">Select the type of incident that occurred.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {claimTypes[selectedOcc].map((c) => (
                 <button
                   key={c.label}
@@ -154,6 +163,36 @@ export default function ClaimsPage() {
               ))}
             </div>
           </div>
+
+          {/* Animal claim documentation notice */}
+          {selectedOcc === "farmer" && selectedClaim && [
+            "Animal Disease / Illness", "Predator or Wildlife Attack", "Accidental Injury or Death",
+            "Animal Theft / Rustling", "Drought or Starvation", "Flood or Storm Damage",
+            "Transit Accident", "Difficult Birth (Dystocia)", "Poisoning"
+          ].includes(selectedClaim) && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mx-6 mb-0 -mt-2 bg-teal-50 border border-teal-200 rounded-xl p-4"
+            >
+              <p className="text-teal-800 font-semibold text-sm mb-2">📋 Documents needed for animal loss claim</p>
+              <ul className="space-y-1 text-teal-700 text-xs leading-relaxed">
+                <li>• <strong>Veterinary report</strong> or death certificate signed by a licensed vet</li>
+                <li>• <strong>Photos / video</strong> of the deceased or injured animal(s)</li>
+                <li>• <strong>Ear tag, brand, or tattoo number</strong> of each animal claimed</li>
+                <li>• <strong>Purchase receipt or valuation</strong> showing the animal&apos;s worth</li>
+                {selectedClaim === "Animal Theft / Rustling" && (
+                  <li>• <strong>Police abstract</strong> (OB number) filed within 24 hours of discovery</li>
+                )}
+                {selectedClaim === "Animal Disease / Illness" && (
+                  <li>• <strong>Government vet or KVB notification</strong> confirming notifiable disease</li>
+                )}
+                {selectedClaim === "Transit Accident" && (
+                  <li>• <strong>Transporter&apos;s waybill</strong> and driver details</li>
+                )}
+              </ul>
+            </motion.div>
+          )}
 
           {/* Step 3: Evidence Upload */}
           {selectedClaim && (
