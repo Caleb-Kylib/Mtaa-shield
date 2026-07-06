@@ -1,30 +1,39 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from "next/server";
+import { ok, err, checkPassword } from "@/lib/api-helpers";
+import { signToken } from "@/lib/jwt";
+import { users, ensureSeeded } from "@/lib/db";
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
+  ensureSeeded();
   try {
-    const body = await request.json();
-    const { email, password } = body;
+    const { email, password } = await req.json();
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    if (!email || !password) return err("Email and password are required");
 
-    if (email && password) {
-      if (password === 'wrongpassword') {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-      }
-      
-      // Mock successful login
-      return NextResponse.json({
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI...mock-jwt-token',
-        user: {
-          name: email.split('@')[0],
-          email: email,
-        }
-      });
-    }
+    const user = users.get(email.toLowerCase().trim());
+    if (!user) return err("Invalid credentials", 401);
 
-    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    if (!checkPassword(password, user.passwordHash)) return err("Invalid credentials", 401);
+
+    const token = await signToken({
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      occupation: user.occupation,
+    });
+
+    return ok({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        county: user.county,
+        occupation: user.occupation,
+      },
+    });
+  } catch {
+    return err("Internal server error", 500);
   }
 }
