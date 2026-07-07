@@ -16,16 +16,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-    if (storedToken && storedUser) {
-      try {
+
+    if (!storedToken) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate the stored token against /api/auth/me to ensure it's still valid
+    fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${storedToken}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Token invalid");
+        return res.json();
+      })
+      .then((freshUser: User) => {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch {
+        setUser(freshUser);
+        // Refresh stored user with latest data from server
+        localStorage.setItem("user", JSON.stringify(freshUser));
+      })
+      .catch(() => {
+        // Token is expired or invalid — clear storage
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-      }
-    }
-    setIsLoading(false);
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   useEffect(() => {

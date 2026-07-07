@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, User, Send, Mic, Globe, Sparkles, Shield, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bot, User, Send, Mic, Globe, Shield, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { ChatMessage } from "@/types";
+import Link from "next/link";
+import { useAIChat } from "@/hooks/useAIChat";
 import { USSD_CODE } from "@/constants";
 
 const SUGGESTED_PROMPTS = [
@@ -19,45 +19,9 @@ const SUGGESTED_PROMPTS = [
 
 const LANGUAGES = ["English", "Swahili", "Sheng"];
 
-const MOCK_RESPONSES: Record<string, string> = {
-  boda: "Rider Plus inakulinda kwa ajali, wizi, na third-party liability. Inaanza KES 250/wiki tu. Shall we proceed to payment via M-Pesa?",
-  farmer: "For farmers, I recommend Farm Plus at KES 150/week. It covers crop failure, livestock accidents, and equipment damage. Would you like to compare it with Essential Farm Cover?",
-  market: "For market traders, Biashara Plus at KES 200/week covers fire, theft, stock spoilage and business interruption. Want me to break down what's covered?",
-  construction: "Fundi Plus at KES 220/week is perfect — it covers on-site injuries, disability, and tool theft up to KES 80,000. Shall I walk you through the claim process?",
-  gig: "Gig Plus at KES 180/week covers your devices, equipment theft, and income protection. As a freelancer, this gives you a safety net. Interested?",
-  business: "Business Plus at KES 300/week gives you comprehensive business protection — fire, equipment, stock, and interruption cover. Want to see a full breakdown?",
-};
-
-function getAIResponse(input: string): string {
-  const lower = input.toLowerCase();
-  if (lower.includes("boda") || lower.includes("nduthi") || lower.includes("rider"))
-    return MOCK_RESPONSES.boda;
-  if (lower.includes("farmer") || lower.includes("mkulima") || lower.includes("mahindi") || lower.includes("shamba"))
-    return MOCK_RESPONSES.farmer;
-  if (lower.includes("market") || lower.includes("trader") || lower.includes("mboga") || lower.includes("biashara ya mtaani"))
-    return MOCK_RESPONSES.market;
-  if (lower.includes("construction") || lower.includes("fundi") || lower.includes("build"))
-    return MOCK_RESPONSES.construction;
-  if (lower.includes("gig") || lower.includes("freelance") || lower.includes("designer") || lower.includes("online"))
-    return MOCK_RESPONSES.gig;
-  if (lower.includes("business") || lower.includes("biashara") || lower.includes("shop"))
-    return MOCK_RESPONSES.business;
-  if (lower.includes("swahili") || lower.includes("kiswahili"))
-    return "Sawa! Naweza kukusaidia kwa Kiswahili. Wewe hufanya kazi gani? Mwambie niipendekeze bima inayofaa.";
-  return "Asante! Based on what you've told me, I'd like to ask a few more questions to find you the best plan. What is your approximate monthly income from your work?";
-}
-
 export default function AIAssistantPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      role: "assistant",
-      text: "Jambo! I am the Mtaa Shield AI Advisor. I can help you find the perfect insurance plan in English, Swahili, or Sheng.\n\nHow do you earn your income?",
-      timestamp: new Date(),
-    },
-  ]);
+  const { messages, isTyping, lastSuggestion, sendMessage, reset } = useAIChat();
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const [language, setLanguage] = useState("English");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -65,28 +29,10 @@ export default function AIAssistantPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      text: trimmed,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
+  const handleSend = (text: string) => {
+    if (!text.trim()) return;
+    sendMessage(text, language);
     setInput("");
-    setIsTyping(true);
-
-    await new Promise((r) => setTimeout(r, 1200));
-    const aiText = getAIResponse(trimmed);
-
-    setIsTyping(false);
-    setMessages((prev) => [
-      ...prev,
-      { id: (Date.now() + 1).toString(), role: "assistant", text: aiText, timestamp: new Date() },
-    ]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -175,6 +121,28 @@ export default function AIAssistantPage() {
             </AnimatePresence>
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Suggested Package Card */}
+          {lastSuggestion && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-4 pb-3 border-t border-gray-100 bg-emerald-50/60"
+            >
+              <p className="text-xs text-gray-500 font-medium pt-3 mb-2">🎯 Recommended for you:</p>
+              <div className="bg-white rounded-xl border border-emerald-200 p-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-bold text-gray-900 text-sm">{lastSuggestion.name}</p>
+                  <p className="text-xs text-gray-500">from KES {lastSuggestion.weeklyPrice}/wk · {lastSuggestion.coverageAmount}</p>
+                </div>
+                <Link href={`/packages?occ=${lastSuggestion.occupation}`}
+                  className="flex items-center gap-1 text-xs font-semibold text-emerald-600 whitespace-nowrap hover:underline"
+                >
+                  View Plan <ArrowRight size={11} />
+                </Link>
+              </div>
+            </motion.div>
+          )}
 
           {/* Suggested Prompts */}
           <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">

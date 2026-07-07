@@ -1,24 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Shield, User as UserIcon, LogOut, Menu, X, Bot, ChevronDown } from "lucide-react";
+import { Shield, LogOut, Menu, X, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { NAV_LINKS } from "@/constants";
+import { notificationsService } from "@/services/notifications.service";
 
 export default function Navigation() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
+  // Scroll shadow
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Poll notifications when user is logged in
+  useEffect(() => {
+    if (!user) { setUnreadCount(0); return; }
+    const load = () =>
+      notificationsService.list()
+        .then((r) => setUnreadCount(r.unreadCount))
+        .catch(() => {/* silent */});
+    load();
+    const interval = setInterval(load, 60_000); // refresh every 60s
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <header
@@ -29,6 +43,7 @@ export default function Navigation() {
       }`}
     >
       <div className="container flex items-center justify-between h-16">
+
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 text-primary font-extrabold text-xl shrink-0">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -62,17 +77,33 @@ export default function Navigation() {
         <div className="hidden md:flex items-center gap-2">
           {user ? (
             <>
+              {/* Notifications bell */}
+              <Link
+                href="/dashboard"
+                className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Notifications"
+              >
+                <Bell size={18} className="text-gray-500" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-orange-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* User avatar + name */}
               <Link
                 href="/dashboard"
                 className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-primary px-3 py-2 rounded-md hover:bg-primary/5 transition-colors"
               >
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <span className="text-primary text-xs font-bold">
                     {user.name?.[0]?.toUpperCase()}
                   </span>
                 </div>
-                <span>{user.name}</span>
+                <span className="max-w-[100px] truncate">{user.name}</span>
               </Link>
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -134,9 +165,14 @@ export default function Navigation() {
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileOpen(false)}
-                  className="text-sm font-medium text-gray-700 hover:text-primary py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-colors"
+                  className="text-sm font-medium text-gray-700 hover:text-primary py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-between"
                 >
-                  Dashboard
+                  <span>Dashboard</span>
+                  {unreadCount > 0 && (
+                    <span className="bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
                 </Link>
               )}
               <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 mt-2">
@@ -145,10 +181,7 @@ export default function Navigation() {
                     variant="outline"
                     size="sm"
                     className="w-full"
-                    onClick={() => {
-                      logout();
-                      setMobileOpen(false);
-                    }}
+                    onClick={() => { logout(); setMobileOpen(false); }}
                   >
                     <LogOut size={15} className="mr-1.5" />
                     Sign Out
@@ -156,14 +189,10 @@ export default function Navigation() {
                 ) : (
                   <>
                     <Button variant="outline" size="sm" className="w-full" asChild>
-                      <Link href="/login" onClick={() => setMobileOpen(false)}>
-                        Login
-                      </Link>
+                      <Link href="/login" onClick={() => setMobileOpen(false)}>Login</Link>
                     </Button>
                     <Button size="sm" className="w-full font-semibold" asChild>
-                      <Link href="/register" onClick={() => setMobileOpen(false)}>
-                        Get Covered
-                      </Link>
+                      <Link href="/register" onClick={() => setMobileOpen(false)}>Get Covered</Link>
                     </Button>
                   </>
                 )}
