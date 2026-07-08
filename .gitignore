@@ -28,6 +28,13 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# local env files
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
 # vercel
 .vercel
 
@@ -37,3 +44,7 @@ next-env.d.ts
 
 #vs code
 .vscode/
+
+# Build output
+dist/
+backend/dist/

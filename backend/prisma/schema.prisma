@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+}
+
+enum OccupationType {
+  FARMER
+  BODA_RIDER
+  MARKET_TRADER
+  SMALL_VENDOR
+  CONSTRUCTION_WORKER
+  GIG_WORKER
+  SMALL_BUSINESS_OWNER
+}
+
+enum Role {
+  USER
+  ADMIN
+  AGENT
+}
+
+enum PaymentFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+enum PolicyStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+enum ClaimStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PAID
+}
+
+model User {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  fullName            String
+  email               String            @unique
+  phone               String            @unique
+  password            String
+  county              String
+  preferredLanguage   String            @default("en")
+  occupation          OccupationType
+  role                Role              @default(USER)
+  isVerified          Boolean           @default(false)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  policies            Policy[]
+  notifications       Notification[]
+  aiConversations     AIConversation[]
+}
+
+model InsurancePlan {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  slug                String            @unique
+  targetOccupation    OccupationType
+  description         String
+  premiumWeekly       Float
+  premiumMonthly      Float
+  premiumQuarterly    Float
+  coverage            String
+  exclusions          String[]
+  benefits            String[]
+  isActive            Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+  policies            Policy[]
+}
+
+model Policy {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String            @db.ObjectId
+  insurancePlanId     String            @db.ObjectId
+  policyNumber        String            @unique
+  status              PolicyStatus      @default(PENDING)
+  paymentFrequency    PaymentFrequency
+  premiumAmount       Float
+  startDate           DateTime
+  expiryDate          DateTime
+  createdAt           DateTime          @default(now())
+  user                User              @relation(fields: [userId], references: [id])
+  insurancePlan       InsurancePlan     @relation(fields: [insurancePlanId], references: [id])
+  payments            Payment[]
+  claims              Claim[]
+}
+
+model Payment {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  policyId            String            @db.ObjectId
+  amount              Float
+  method              String
+  mpesaReceipt        String?
+  status              String            @default("PENDING")
+  transactionDate     DateTime          @default(now())
+  policy              Policy            @relation(fields: [policyId], references: [id])
+}
+
+model Claim {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  policyId            String            @db.ObjectId
+  description         String
+  claimType           String
+  evidence            String[]
+  status              ClaimStatus       @default(PENDING)
+  aiAssessment        String?
+  submittedAt         DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  policy              Policy            @relation(fields: [policyId], references: [id])
+}
+
+model Notification {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String            @db.ObjectId
+  title               String
+  message             String
+  channel             String
+  isRead              Boolean           @default(false)
+  sentAt              DateTime          @default(now())
+  user                User              @relation(fields: [userId], references: [id])
+}
+
+model AIConversation {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String            @db.ObjectId
+  question            String
+  answer              String
+  language            String            @default("en")
+  createdAt           DateTime          @default(now())
+  user                User              @relation(fields: [userId], references: [id])
+}
+
+model County {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  name                String            @unique
+}
