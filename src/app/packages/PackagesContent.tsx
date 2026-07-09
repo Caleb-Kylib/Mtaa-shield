@@ -49,9 +49,9 @@ export default function PackagesContent() {
 
   const handleBuy = (pkgId: string) => {
     if (!token) {
-      router.push(`/login?redirect=/checkout?planId=${pkgId}&freq=${frequency}`);
+      router.push(`/login?redirect=/onboarding?planId=${pkgId}&freq=${frequency}`);
     } else {
-      router.push(`/checkout?planId=${pkgId}&freq=${frequency}`);
+      router.push(`/onboarding?planId=${pkgId}&freq=${frequency}`);
     }
   };
 
