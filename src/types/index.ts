@@ -25,9 +25,9 @@ export type OccupationType =
   | 'farmer'
   | 'boda-rider'
   | 'market-trader'
+  | 'vendor'
   | 'construction-worker'
-  | 'gig-worker'
-  | 'small-business';
+  | 'gig-worker';
 
 // ── Insurance Types ───────────────────────────────────────────────────────────
 export type PaymentFrequency = 'weekly' | 'monthly' | 'quarterly';
@@ -42,7 +42,7 @@ export interface InsurancePackage {
   id: string;
   name: string;
   occupation: OccupationType;
-  tier: 'basic' | 'plus' | 'animal';
+  tier: 'basic' | 'plus';
   tagline: string;
   weeklyPrice: number;
   monthlyPrice: number;
@@ -62,14 +62,6 @@ export interface OccupationCard {
   image: string;
   color: string;
   bgColor: string;
-}
-
-export interface AddOn {
-  id: string;
-  name: string;
-  description: string;
-  weeklyPrice: number;
-  icon: string;
 }
 
 // ── Claims Types ──────────────────────────────────────────────────────────────
@@ -112,7 +104,6 @@ export interface WizardState {
   incomeFrequency: 'daily' | 'weekly' | 'monthly' | null;
   county: string;
   monthlyBudget: number | null;
-  addOns: string[];
   recommendedPackage: InsurancePackage | null;
   confidenceScore: number;
 }

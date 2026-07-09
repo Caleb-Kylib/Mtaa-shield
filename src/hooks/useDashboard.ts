@@ -25,11 +25,56 @@ export function useDashboard() {
         claimsService.list().catch(() => ({ claims: [], total: 0 })),
         notificationsService.list().catch(() => ({ notifications: [], unreadCount: 0 })),
       ]);
-      setPolicies(polRes.policies);
-      setPayments(payRes.payments);
+      
+      let allPolicies = [...polRes.policies];
+      let allPayments = [...payRes.payments];
+      let allNotifications = [...notifRes.notifications];
+
+      // Inject mock policy from localStorage if exists
+      if (typeof window !== 'undefined') {
+        const mockStr = localStorage.getItem("mtaa_new_policy");
+        if (mockStr) {
+          const mockPolicy = JSON.parse(mockStr);
+          allPolicies.unshift({
+            id: mockPolicy.policyNumber,
+            userId: "mock",
+            insurancePlanId: mockPolicy.id,
+            packageName: mockPolicy.name,
+            policyNumber: mockPolicy.policyNumber,
+            status: "active",
+            frequency: "weekly",
+            premium: 150,
+            coverageAmount: "Up to KES 200,000",
+            startDate: mockPolicy.startDate,
+            endDate: mockPolicy.nextPayment,
+          });
+          
+          allPayments.unshift({
+            id: `pay-${mockPolicy.policyNumber}`,
+            policyId: mockPolicy.policyNumber,
+            amount: 150,
+            method: "MPESA",
+            mpesaRef: "QWX1234XYZ",
+            status: "success",
+            date: mockPolicy.startDate,
+          });
+
+          allNotifications.unshift({
+            id: `notif-${mockPolicy.policyNumber}`,
+            title: `Purchased ${mockPolicy.name}`,
+            message: `Your ${mockPolicy.name} policy (${mockPolicy.policyNumber}) is now active.`,
+            type: "info",
+            read: false,
+            date: mockPolicy.startDate,
+          });
+        }
+      }
+
+      setPolicies(allPolicies);
+      setPayments(allPayments);
       setClaims(clmRes.claims);
-      setNotifications(notifRes.notifications);
-      setUnreadCount(notifRes.unreadCount);
+      setNotifications(allNotifications);
+      setUnreadCount(notifRes.unreadCount + (typeof window !== 'undefined' && localStorage.getItem("mtaa_new_policy") ? 1 : 0));
     } catch (e) {
       setError("Failed to load dashboard data");
     } finally {
