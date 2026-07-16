@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
-import FloatingAIButton from "@/components/shared/FloatingAIButton";
+import AdminChrome from "@/components/AdminChrome";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,10 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased bg-background text-foreground min-h-screen flex flex-col">
         <AuthProvider>
-          <Navigation />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <FloatingAIButton />
+          <AdminChrome>{children}</AdminChrome>
         </AuthProvider>
       </body>
     </html>
