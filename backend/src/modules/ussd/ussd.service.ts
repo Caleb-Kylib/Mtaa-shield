@@ -1,4 +1,12 @@
 import { prisma } from '../../prisma/client';
+import bcrypt from 'bcrypt';
+
+function normalizeKenyanPhone(phoneNumber: string): string {
+  const compact = phoneNumber.replace(/[\s()-]/g, '');
+  if (/^0[17]\d{8}$/.test(compact)) return `+254${compact.slice(1)}`;
+  if (/^254[17]\d{8}$/.test(compact)) return `+${compact}`;
+  return compact.startsWith('+') ? compact : `+${compact}`;
+}
 
 // ─────────────────────────────────────────────
 // USSD text arrives as a "*"-separated string.
@@ -15,13 +23,14 @@ export class UssdService {
     text: string
   ): Promise<string> {
     const textArray = text === '' ? [] : text.split('*');
+    const normalizedPhone = normalizeKenyanPhone(phoneNumber);
 
     const user = await prisma.user.findUnique({
-      where: { phone: phoneNumber },
+      where: { phone: normalizedPhone },
     });
 
     if (!user) {
-      return this.handleUnregisteredUser(textArray, phoneNumber);
+      return this.handleUnregisteredUser(textArray, normalizedPhone);
     }
 
     return this.handleRegisteredUser(user, textArray);
@@ -47,13 +56,16 @@ export class UssdService {
         const fullName = textArray[1];
         const county   = textArray[2];
         try {
+          const password = await bcrypt.hash(`ussd-${phoneNumber}-${Date.now()}`, 10);
           await prisma.user.create({
             data: {
               fullName,
               phone: phoneNumber,
               county,
               email: `${phoneNumber}@placeholder.com`,
-              password: 'defaultUssdPassword123!',
+              // USSD users do not choose a web password; store a non-reusable hash
+              // so this account cannot be accessed with a shared default credential.
+              password,
               occupation: 'FARMER',
               preferredLanguage: 'en',
             },
